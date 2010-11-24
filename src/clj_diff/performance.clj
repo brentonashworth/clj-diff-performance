@@ -19,6 +19,9 @@
 (defn miller-diff [a b]
   (miller/diff a b))
 
+(defn miller-seq-diff [a b]
+  (miller/diff (seq a) (seq b)))
+
 (defn fraser-diff [a b]
   (let [dmp (diff_match_patch.)]
     (do (set! (. dmp Diff_Timeout) 0)
@@ -48,7 +51,8 @@
 
 (def diff-fns [["Myers" myers-diff]
                ["Miller" miller-diff]
-               ["Fraser" fraser-diff]])
+               ["Fraser" fraser-diff]
+               #_["Miller Seq" miller-seq-diff]])
 
 (defn random-between
   "Generate a random number between low and high. Can also be passed

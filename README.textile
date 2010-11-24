@@ -12,6 +12,8 @@ user=> (performance-tests)
 
 h2. Results
 
+All of the tests below are performed on strings so that the results can be compared with the Fraser algorithm. Performance for Clojure sequences will be slower.
+
 For sequences of length 100, vary the number of mutations made to the sequence from 1 to 50. These changes will always replace existing values so that the new sequence is the same size as the old one.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/mutations_100.png"/>
@@ -35,6 +37,10 @@ Move the first element of the sequence to the end.
 Make a small change in the middle of the sequence.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_add_in_middle.png"/>
+
+Finally, the Miller algorithm is especially fast when there is a large difference in the lengths of the sequences. This test will delete half of the sequence from the middle and then mutate 10% of the remaining sequence.
+
+<img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_delete_half.png"/>
 
 h2. License
 
