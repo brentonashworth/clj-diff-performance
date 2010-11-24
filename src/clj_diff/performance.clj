@@ -195,6 +195,12 @@
   (let [split (map #(apply str %) (split-at (/ (count a) 2) (seq a)))]
     (str (first split) "clj-diff" (last split))))
 
+(defn- delete-half-and-mutate* [a]
+  (let [half (quot (count a) 2)
+        b (str (.substring a 0 (quot half 2))
+               (.substring a (- (count a) (quot half 2))))]
+    (mutate b (quot (count b) 10) 2)))
+
 (defn vary-mutation-100 [x n]
   (let [d (vary-mutations 100 (test-range 100 x)
                           5
@@ -209,18 +215,25 @@
     (visualize 1000 "mutations_1000" d)))
 
 (defn move-first-to-end [x n]
-  (let [d (vary-string-length (range 100 10000 (quot 10000 x))
+  (let [d (vary-string-length (range 100 200000 (quot 200000 x))
                               move-first-to-end*
                               (quot (* n 2) 3)
                               n)]
     (visualize-2 "Move First Element to End" "length_move_first_to_end" d)))
 
 (defn add-in-the-middle [x n]
-  (let [d (vary-string-length (range 100 10000 (quot 10000 x))
+  (let [d (vary-string-length (range 100 200000 (quot 200000 x))
                               add-in-the-middle*
                               (quot (* n 2) 3)
                               n)]
     (visualize-2 "Add in the Middle" "length_add_in_middle" d)))
+
+(defn delete-half-and-mutate [x n]
+  (let [d (vary-string-length (range 100 2000 (quot 2000 x))
+                              delete-half-and-mutate*
+                              (quot (* n 2) 3)
+                              n)]
+    (visualize-2 "Delete Half and Change" "length_delete_half" d)))
 
 (defn percent-change [max p x n]
   (let [percent (/ p 100.0)
@@ -232,14 +245,15 @@
 
 (defn suite [x]
   (do
-    (vary-mutation-100 x 50)
-    (vary-mutation-1000 x 10)
-    (percent-change 15000 5 x 3)
-    (percent-change 7000 5 x 10)
-    (percent-change 5000 10 x 3)
-    (percent-change 2000 50 x 3)
-    (move-first-to-end x 50)
-    (add-in-the-middle x 50)))
+    (vary-mutation-100 x 60)
+    (vary-mutation-1000 x 20)
+    (percent-change 15000 5 x 10)
+    (percent-change 7000 5 x 20)
+    (percent-change 5000 10 x 10)
+    (percent-change 2000 50 x 10)
+    (move-first-to-end x 30)
+    (add-in-the-middle x 30)
+    (delete-half-and-mutate x 10)))
 
 (defn performance-tests []
   (suite 10))
