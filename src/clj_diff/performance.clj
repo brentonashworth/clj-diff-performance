@@ -159,15 +159,16 @@
       (doto (line-chart :mutations :mean
                         :group-by :name
                         :legend true
-                        :title (str "String length = " title)
+                        :title (str title " Character String")
                         :x-label (str "Mutations")
                         :y-label "Time (ms)")
-        (view :width 850)
-        (save (str "charts/" file-name ".png") :width 850)))))
+        (.setBackgroundPaint (new java.awt.Color 248 248 248))
+        (view :width 896)
+        (save (str "charts/" file-name ".png") :width 896)))))
 
 (defn visualize-2
   ([title file-name data]
-     (visualize-2 title file-name data 850))
+     (visualize-2 title file-name data 896))
   ([title file-name data width]
      (let [d (to-dataset (doall data))
            x-label (if (.endsWith file-name "seq") "Sequence/String" "String")]
@@ -179,7 +180,7 @@
                            :title title
                            :x-label (str x-label " Length")
                            :y-label "Time (ms)")
-        
+           (.setBackgroundPaint (new java.awt.Color 248 248 248))
            (view :width width)
            (save (str "charts/" file-name ".png") :width width))))))
 
@@ -225,7 +226,7 @@
     (visualize-2 "Move First Element to End"
                  (str "length_move_first_to_end_" name)
                  d
-                 425)))
+                 448)))
 
 (defn add-in-the-middle [fns x n name]
   (let [d (vary-string-length fns (range 100 200000 (quot 200000 x))
@@ -235,7 +236,7 @@
     (visualize-2 "Add in the Middle"
                  (str "length_add_in_middle_" name)
                  d
-                 425)))
+                 448)))
 
 (defn delete-half-and-mutate [fns x n]
   (let [d (vary-string-length fns (range 100 2000 (quot 2000 x))

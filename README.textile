@@ -12,15 +12,15 @@ user=> (performance-tests)
 
 h2. Results
 
-For each data point on the plots below, multiple tests with the same data are run and the mean of the fastest 2/3 are plotted. If you run the tests yourself, you will also see a table which includes the standard deviation (I don't know how to show the standard deviation on these charts).
+For each data point on the charts below, multiple tests with the same data are run and the mean of the fastest 2/3 are plotted. If you run the tests yourself, you will also see a table which includes the standard deviation (I don't know how to show the standard deviation on these charts).
 
-Most of the tests below are performed on strings so that results may be compared with the Fraser algorithm (which will only work on strings). The performance for sequences is generally the same as the Miller algorithm for strings. Where it differs, additional charts are shown.
+Most of the tests below are performed on strings so that results may be compared with the Fraser algorithm (which will only work on strings). The performance for sequences is generally the same as the Miller algorithm for strings; where it differs, additional charts are shown.
 
-For strings of length 100, vary the number of mutations made to the string from 1 change up to about 75% change. These changes will always replace existing values so that the new sequence is the same size as the old one.
+For for 100 character strings, vary the number of mutations made to the string from 1 change up to about 90% change. These changes will always replace existing values so that the new sequence is the same size as the old one.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/mutations_100.png"/>
 
-For strings of length 1000, vary the number of mutations from 1 change up to about 75% change.
+For 1000 character strings, vary the number of mutations from 1 change up to about 90% change.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/mutations_1000.png"/>
 
