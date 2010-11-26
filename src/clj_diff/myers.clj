@@ -156,14 +156,23 @@
       (dissoc :current)
       merge-additions))
 
-(defn diff
+(defn seq-diff
+  [a b]
+  (let [a (vec (cons nil a))
+        b (vec (cons nil b))
+        ses (ses a b)
+        optimal-path (apply path a b ses)]
+    (path->script b optimal-path)))
+
+(defmulti ^{:arglists '([a b])} diff
   "Create an edit script that may be used to transform a into b. See doc string
   for clj-diff.core/diff."
-  [a b]
-  (opt/diff a b
-            (fn [a b] (let [a (vec (cons nil a))
-                            b (vec (cons nil b))
-                            ses (ses a b)
-                            optimal-path (apply path a b ses)]
-                        (path->script b optimal-path)))))
+  (fn [a b] (when (and (string? a) (string? b)) :string)))
 
+(defmethod diff :default
+  [a b]
+  (seq-diff a b))
+
+(defmethod diff :string
+  [a b]
+  (opt/diff a b seq-diff))

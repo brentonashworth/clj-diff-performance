@@ -49,11 +49,6 @@
   (edit-distance [diffs]
                  (fraser-distance diffs)))
 
-(def diff-fns [["Myers" myers-diff]
-               ["Miller" miller-diff]
-               ["Fraser" fraser-diff]
-               #_["Miller Seq" miller-seq-diff]])
-
 (defn random-between
   "Generate a random number between low and high. Can also be passed
   characters as the bounds."
@@ -121,7 +116,7 @@
 (defn sample
   "For strings a and b, run each diff algorithm 'total-runs' times and then
   calculate stats based on the fastest 'take-top' runs."
-  [a b take-top total-runs]
+  [fns a b take-top total-runs]
   (map #(let [[alg f] %
               d (take take-top
                       (sort-by :time (time* total-runs
@@ -133,28 +128,28 @@
               sd (stats/sd times)]
           {:name alg :mean mean :sd sd
            :distance (apply str (interpose ", " distances))})
-       diff-fns))
+       fns))
 
 (defn vary-mutations
   "For a sting on length n, vary the number of mutations that are made to
   the string."
-  ([n m-range g]
-     (vary-mutations n m-range g 2 3))
-  ([n m-range g t r]
+  ([fns n m-range g]
+     (vary-mutations fns n m-range g 2 3))
+  ([fns n m-range g t r]
      (let [a (random-string n)]
        (flatten
         (map (fn [m] (map #(merge {:mutations m} %)
-                          (sample a (mutate a m g) (max t 1) (max r 1))))
+                          (sample fns a (mutate a m g) (max t 1) (max r 1))))
              m-range)))))
 
 (defn vary-string-length
-  ([n-range m]
-     (vary-string-length n-range m 2 3))
-  ([n-range m t r]
+  ([fns n-range m]
+     (vary-string-length fns n-range m 2 3))
+  ([fns n-range m t r]
      (flatten
       (map (fn [n] (map #(merge {:size n} %)
                         (let [a (random-string n)]
-                          (sample a (m a) (max t 1) (max r 1)))))
+                          (sample fns a (m a) (max t 1) (max r 1)))))
            n-range))))
 
 (defn visualize [title file-name data]
@@ -164,28 +159,32 @@
       (doto (line-chart :mutations :mean
                         :group-by :name
                         :legend true
-                        :title (str "Sequence length = " title)
+                        :title (str "String length = " title)
                         :x-label (str "Mutations")
                         :y-label "Time (ms)")
         (view :width 700)
         (save (str "charts/" file-name ".png") :width 700)))))
 
-(defn visualize-2 [title file-name data]
-  (let [d (to-dataset (doall data))]
-    (view d)
-    (with-data d
-      (doto (line-chart :size :mean
-                        :group-by :name
-                        :legend true
-                        :title title
-                        :x-label "Sequence Length"
-                        :y-label "Time (ms)")
+(defn visualize-2
+  ([title file-name data]
+     (visualize-2 title file-name data 700))
+  ([title file-name data width]
+     (let [d (to-dataset (doall data))
+           x-label (if (.endsWith file-name "seq") "Sequence/String" "String")]
+       (view d)
+       (with-data d
+         (doto (line-chart :size :mean
+                           :group-by :name
+                           :legend true
+                           :title title
+                           :x-label (str x-label " Length")
+                           :y-label "Time (ms)")
         
-        (view :width 700)
-        (save (str "charts/" file-name ".png") :width 700)))))
+           (view :width width)
+           (save (str "charts/" file-name ".png") :width width))))))
 
 (defn test-range [size points]
-  (let [mutations (quot size 2)
+  (let [mutations (quot (* size 9) 10)
         step (quot mutations points)]
     (range 1 (inc mutations) step)))
 
@@ -205,59 +204,74 @@
                (.substring a (- (count a) (quot half 2))))]
     (mutate b (quot (count b) 10) 2)))
 
-(defn vary-mutation-100 [x n]
-  (let [d (vary-mutations 100 (test-range 100 x)
+(defn vary-mutation-100 [fns x n]
+  (let [d (vary-mutations fns 100 (test-range 100 x)
                           5
                           (quot (* n 2) 3)
                           n)]
     (visualize 100 "mutations_100" d)))
 
-(defn vary-mutation-1000 [x n]
-  (let [d (vary-mutations 1000 (test-range 1000 x)
+(defn vary-mutation-1000 [fns x n]
+  (let [d (vary-mutations fns 1000 (test-range 1000 x)
                           50
                           (quot (* n 2) 3) n)]
     (visualize 1000 "mutations_1000" d)))
 
-(defn move-first-to-end [x n]
-  (let [d (vary-string-length (range 100 200000 (quot 200000 x))
+(defn move-first-to-end [fns x n name]
+  (let [d (vary-string-length fns (range 100 200000 (quot 200000 x))
                               move-first-to-end*
                               (quot (* n 2) 3)
                               n)]
-    (visualize-2 "Move First Element to End" "length_move_first_to_end" d)))
+    (visualize-2 "Move First Element to End"
+                 (str "length_move_first_to_end_" name)
+                 d
+                 425)))
 
-(defn add-in-the-middle [x n]
-  (let [d (vary-string-length (range 100 200000 (quot 200000 x))
+(defn add-in-the-middle [fns x n name]
+  (let [d (vary-string-length fns (range 100 200000 (quot 200000 x))
                               add-in-the-middle*
                               (quot (* n 2) 3)
                               n)]
-    (visualize-2 "Add in the Middle" "length_add_in_middle" d)))
+    (visualize-2 "Add in the Middle"
+                 (str "length_add_in_middle_" name)
+                 d
+                 425)))
 
-(defn delete-half-and-mutate [x n]
-  (let [d (vary-string-length (range 100 2000 (quot 2000 x))
+(defn delete-half-and-mutate [fns x n]
+  (let [d (vary-string-length fns (range 100 2000 (quot 2000 x))
                               delete-half-and-mutate*
                               (quot (* n 2) 3)
                               n)]
     (visualize-2 "Delete Half and Change" "length_delete_half" d)))
 
-(defn percent-change [max p x n]
+(defn percent-change [fns max p x n]
   (let [percent (/ p 100.0)
-        d (vary-string-length (range 100 max (quot max x))
+        d (vary-string-length fns (range 100 max (quot max x))
                               #(mutate % (* (count %) percent) 10)
                               (quot (* n 2) 3)
                               n)]
-    (visualize-2 (str p "% change") (str "length_" max "_" p) d)))
+    (visualize-2 (str p "% Change") (str "length_" max "_" p) d)))
 
 (defn suite [x]
-  (do
-    (vary-mutation-100 x 60)
-    (vary-mutation-1000 x 20)
-    (percent-change 15000 5 x 10)
-    (percent-change 7000 5 x 20)
-    (percent-change 5000 10 x 10)
-    (percent-change 2000 50 x 10)
-    (move-first-to-end x 30)
-    (add-in-the-middle x 30)
-    (delete-half-and-mutate x 10)))
+  (let [fns [["Myers" myers-diff]
+             ["Miller" miller-diff]
+             ["Fraser" fraser-diff]]
+        seq-fns [["Miller - String" miller-diff]
+                 ["Miller - Seq" miller-seq-diff]]]
+    (do
+      (vary-mutation-100 fns x 60)
+      (vary-mutation-1000 fns x 20)
+      (percent-change fns 15000 5 x 10)
+      (percent-change fns 7000 5 x 20)
+      (percent-change fns 5000 10 x 10)
+      (percent-change fns 2000 50 x 10)
+      (move-first-to-end fns 5 30 "string")
+      (add-in-the-middle fns 5 30 "string")
+      (move-first-to-end seq-fns 5 30 "seq")
+      (add-in-the-middle seq-fns 5 30 "seq")
+      (delete-half-and-mutate fns x 10))))
 
-(defn performance-tests []
+(defn performance-tests
+  "Run the standard performance tests."
+  []
   (suite 10))

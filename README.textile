@@ -1,6 +1,6 @@
 h1. clj-diff-performance
 
-Compare performance of various diff algorithms. The unit tests also compare the results of the various algorithms with random input.
+Compare performance of various diff algorithms. The unit tests also compare the results of the each algorithm with random input.
 
 Currently, three algorithms are being compared: "Miller":http://portal.acm.org/citation.cfm?id=96223, "Myers":http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.4.6927&rep=rep1&type=pdf and "Fraser":http://code.google.com/p/google-diff-match-patch/. Miller and Myers are written in Clojure and Fraser is written in Java. All algorithms take advantage of the pre-diff optimizations mentioned in Neil Fraser's "Diff Strategies":http://neil.fraser.name/writing/diff/.
 
@@ -12,17 +12,19 @@ user=> (performance-tests)
 
 h2. Results
 
-All of the tests below are performed on strings so that the results can be compared with the Fraser algorithm. Performance for Clojure sequences will be slower.
+For each data point on the plots below, multiple tests with the same data are run and the mean of the fastest 2/3 are plotted. If you run the tests yourself, you will also see a table which includes the standard deviation (I don't know how to show the standard deviation on these charts).
 
-For sequences of length 100, vary the number of mutations made to the sequence from 1 to 50. These changes will always replace existing values so that the new sequence is the same size as the old one.
+Most of the tests below are performed on strings so that results may be compared with the Fraser algorithm (which will only work on strings). The performance for sequences is generally the same as the Miller algorithm for strings. Where it differs, additional charts are shown.
+
+For strings of length 100, vary the number of mutations made to the string from 1 change up to about 75% change. These changes will always replace existing values so that the new sequence is the same size as the old one.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/mutations_100.png"/>
 
-For sequences of length 1000, vary the number of mutations from 1 to 500.
+For strings of length 1000, vary the number of mutations from 1 change up to about 75% change.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/mutations_1000.png"/>
 
-Vary the length of the sequences, with 5%, 10% and 50% change.
+Vary the length of the strings, with 5%, 10% and 50% change.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_15000_5.png"/>
 
@@ -30,17 +32,19 @@ Vary the length of the sequences, with 5%, 10% and 50% change.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_2000_50.png"/>
 
+The Miller algorithm is especially fast when there is a large difference in the lengths of the sequences. This test will delete half of the sequence from the middle and then mutate 10% of the remaining sequence.
+
+<img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_delete_half.png"/>
+
+In each chart above, sequence performance is the same as with strings. When strings are being diffed, there are several optimizations that may be performed. These optimizations make use of Java's very fast String functions. The same optimizations do not improve performance when used on sequences, in fact they severely degrade it. Below are two examples where the string optimizations greatly improve performance. For each example one test is run with only strings and another is run comparing the performance of strings and sequences.
+
 Move the first element of the sequence to the end.
 
-<img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_move_first_to_end.png"/>
+<img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_move_first_to_end_string.png"/><img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_move_first_to_end_seq.png"/>
 
 Make a small change in the middle of the sequence.
 
-<img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_add_in_middle.png"/>
-
-Finally, the Miller algorithm is especially fast when there is a large difference in the lengths of the sequences. This test will delete half of the sequence from the middle and then mutate 10% of the remaining sequence.
-
-<img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_delete_half.png"/>
+<img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_add_in_middle_string.png"/><img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/length_add_in_middle_seq.png"/>
 
 h2. License
 
