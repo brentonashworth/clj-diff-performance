@@ -162,12 +162,12 @@
                         :title (str "String length = " title)
                         :x-label (str "Mutations")
                         :y-label "Time (ms)")
-        (view :width 700)
-        (save (str "charts/" file-name ".png") :width 700)))))
+        (view :width 850)
+        (save (str "charts/" file-name ".png") :width 850)))))
 
 (defn visualize-2
   ([title file-name data]
-     (visualize-2 title file-name data 700))
+     (visualize-2 title file-name data 850))
   ([title file-name data width]
      (let [d (to-dataset (doall data))
            x-label (if (.endsWith file-name "seq") "Sequence/String" "String")]
@@ -274,4 +274,4 @@
 (defn performance-tests
   "Run the standard performance tests."
   []
-  (suite 10))
+  (suite 15))
