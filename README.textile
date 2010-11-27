@@ -1,8 +1,8 @@
 h1. clj-diff-performance
 
-Compare performance of various diff algorithms. The unit tests also compare the results of the each algorithm with random input.
+Compare the performance of various diff algorithms. The unit tests also compare the results of each algorithm with random input to ensure consistent results are being generated.
 
-Currently, three algorithms are being compared: "Miller":http://portal.acm.org/citation.cfm?id=96223, "Myers":http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.4.6927&rep=rep1&type=pdf and "Fraser":http://code.google.com/p/google-diff-match-patch/. Miller and Myers are written in Clojure and Fraser is written in Java. All algorithms take advantage of the pre-diff optimizations mentioned in Neil Fraser's "Diff Strategies":http://neil.fraser.name/writing/diff/.
+Currently, three algorithms are being compared: "Miller":http://portal.acm.org/citation.cfm?id=96223, "Myers":http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.4.6927&rep=rep1&type=pdf and "Fraser":http://code.google.com/p/google-diff-match-patch/. Miller and Myers are written in Clojure and Fraser is written in Java. When operating on strings, all algorithms take advantage of the pre-diff optimizations mentioned in Neil Fraser's "Diff Strategies":http://neil.fraser.name/writing/diff/. These optimizations do not help when operating on Clojure sequences. Most of the tests below are performed on strings so that results may be compared with the Fraser algorithm (which will only work on strings). The performance for sequences is generally the same as the Miller algorithm for strings; where it differs, additional charts are shown.
 
 h2. Usage
 
@@ -12,15 +12,11 @@ user=> (performance-tests)
 
 h2. Results
 
-For each data point on the charts below, multiple tests with the same data are run and the mean of the fastest 2/3 are plotted. If you run the tests yourself, you will also see a table which includes the standard deviation (I don't know how to show the standard deviation on these charts).
+For each data point on the charts below, multiple tests are run with the same data and the mean of the fastest 2/3rds are plotted. If you run the tests yourself, you will also see a table which includes the standard deviation. Unless otherwise stated, changes will always replace existing values so that the new sequence is the same size as the old one.
 
-Most of the tests below are performed on strings so that results may be compared with the Fraser algorithm (which will only work on strings). The performance for sequences is generally the same as the Miller algorithm for strings; where it differs, additional charts are shown.
-
-For for 100 character strings, vary the number of mutations made to the string from 1 change up to about 90% change. These changes will always replace existing values so that the new sequence is the same size as the old one.
+For 100 and 1000 character strings, vary the number of mutations made to the string from 1 change up to about 90% change.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/mutations_100.png"/>
-
-For 1000 character strings, vary the number of mutations from 1 change up to about 90% change.
 
 <img src="http://s3.amazonaws.com/formpluslogic-public/images/clj-diff/mutations_1000.png"/>
 
