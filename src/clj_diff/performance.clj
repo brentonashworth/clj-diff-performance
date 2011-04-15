@@ -4,6 +4,8 @@
   (:require [clj-diff [core :as core]]
             [clj-diff [myers :as myers]]
             [clj-diff [miller :as miller]]
+            [clj-diff [ld :as ld]]
+            [clj-diff [other-ld :as other-ld]]
             [incanter [stats :as stats]])
   (:import name.fraser.neil.plaintext.diff_match_patch))
 
@@ -60,7 +62,7 @@
     (+ lo (Math/abs (mod (. r nextInt) n)))))
 
 (defn random-string
-  "Generage a random string composed of upper and lower case letters and the
+  "Generate a random string composed of upper and lower case letters and the
   numbers 0 through 9."
   [size]
   (loop [length (random-between size size)
@@ -117,11 +119,12 @@
   "For strings a and b, run each diff algorithm 'total-runs' times and then
   calculate stats based on the fastest 'take-top' runs."
   [fns a b take-top total-runs]
-  (map #(let [[alg f] %
+  (map #(let [[alg f result-fn] %
+              result-fn (or result-fn edit-distance)
               d (take take-top
                       (sort-by :time (time* total-runs
-                                            (fn [] (f a b))
-                                            edit-distance)))
+                                               (fn [] (f a b))
+                                               result-fn)))
               times (map :time d)
               distances (distinct (map :result d))
               mean (stats/mean times)
@@ -184,9 +187,12 @@
            (view :width width)
            (save (str "charts/" file-name ".png") :width width))))))
 
-(defn test-range [size points]
+(defn test-range
+  "Return a sequence of n numbers between 0 and size which are evenly
+   distributed thoughout that range."
+  [size n]
   (let [mutations (quot (* size 9) 10)
-        step (quot mutations points)]
+        step (quot mutations n)]
     (range 1 (inc mutations) step)))
 
 (defn- move-first-to-end* [a]
@@ -205,7 +211,10 @@
                (.substring a (- (count a) (quot half 2))))]
     (mutate b (quot (count b) 10) 2)))
 
-(defn vary-mutation-100 [fns x n]
+(defn vary-mutation-100
+  "Given the functions to test (fns), the number of tests to run (x) and the
+   maximum size of a group of mutations (n), display a chart of test results."
+  [fns x n]
   (let [d (vary-mutations fns 100 (test-range 100 x)
                           5
                           (quot (* n 2) 3)
@@ -276,3 +285,19 @@
   "Run the standard performance tests."
   []
   (suite 15))
+
+;;
+;; Performance tests for Levenshtein distance
+;; ==========================================
+
+(defn levenshtein-suite [x]
+  (let [fns [["Laurent" other-ld/laurent-levenshtein identity]
+             ["Estimated" core/levenshtein-distance identity]]]
+    (do
+      (percent-change fns 1000 10 x 3)
+      (percent-change fns 5000 50 x 3))))
+
+(defn ld-performance-tests
+  "Run the standard performance tests."
+  []
+  (levenshtein-suite 10))
