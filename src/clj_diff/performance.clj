@@ -292,7 +292,8 @@
 
 (defn levenshtein-suite [x]
   (let [fns [["Laurent" other-ld/laurent-levenshtein identity]
-             ["Estimated" core/levenshtein-distance identity]]]
+             ["Estimated" core/levenshtein-distance identity]
+             ["New" ld/new-levenshtein identity]]]
     (do
       (percent-change fns 1000 10 x 3)
       (percent-change fns 5000 50 x 3))))
@@ -301,3 +302,26 @@
   "Run the standard performance tests."
   []
   (levenshtein-suite 10))
+
+(defn ld-accuracy []
+  (let [s (random-string 100)
+        s1 (mutate s 50 10)
+        lld (other-ld/laurent-levenshtein s s1)
+        eld (core/levenshtein-distance s s1)
+        nld (ld/new-levenshtein s s1)
+        score #(if (= lld %) 1 0)
+        diff #(Math/abs (- lld %))]
+    {:eld {:score (score eld) :error (diff eld)}
+     :nld {:score (score nld) :error (diff nld)}}))
+
+(defn accuracy-stats [k results]
+  (let [r (map k results)
+        errs (filter #(> % 0) (map :error r))]
+    {:score (reduce + (map :score r))
+     :error (stats/mean errs)
+     :std-dev (stats/sd errs)}))
+
+(defn ld-accuracy-tests []
+  (let [results (repeatedly 1000 ld-accuracy)]
+    [{:eld (accuracy-stats :eld results)}
+     {:nld (accuracy-stats :nld results)}]))

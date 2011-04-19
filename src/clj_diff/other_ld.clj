@@ -1,5 +1,5 @@
 (ns clj-diff.other-ld
-  "Other Levenshtein Disitance functions for use as a comparison.")
+  "Other Levenshtein distance functions for use as a comparison.")
 
 ;; A very compact implementation from Laurent Petit. This algorithm is also
 ;; faster then the typical implementation. If you can make an algorithm
